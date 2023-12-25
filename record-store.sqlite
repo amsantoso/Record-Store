@@ -1,0 +1,86 @@
+-- The total amount of money that would be spent and the total disk space in megabytes if someone were to buy 1 copy of every single track in the store.
+SELECT 
+    SUM(Tracks.Bytes / 1000000) AS TotalDiskSpace,
+    SUM(Tracks.UnitPrice) AS TotalMoneySpent
+FROM Tracks;    
+
+--  the price to buy each playlist (there are 12 of them)
+SELECT 
+    Playlists.Name AS Playlist,
+    SUM(Tracks.UnitPrice) AS PlaylistPrice
+FROM Playlists
+JOIN playlist_track ON Playlists.PlaylistId = playlist_track.PlaylistId
+JOIN Tracks ON playlist_track.TrackId = Tracks.TrackId
+GROUP BY Playlist;
+
+-- the price to buy each playlist
+SELECT 
+    playlists.Name AS Playlist,
+    '$' || printf('%.2f', SUM(Tracks.UnitPrice)) AS PlaylistPrice
+FROM playlists
+JOIN playlist_track ON Playlists.PlaylistId = playlist_track.PlaylistId
+JOIN Tracks ON playlist_track.TrackId = Tracks.TrackId
+GROUP BY Playlist
+ORDER BY PlaylistPrice DESC;
+
+-- a table that gives each employee’s first name, last name, supervisor’s last name (the supervisor is indicated by the ReportsTo column), and hiring date formatted as “year-month-day”
+SELECT 
+    e1.FirstName AS EmployeeFirstName,
+    e1.LastName AS EmployeeLastName,
+    e2.LastName AS SupervisorLastName,
+    strftime('%Y-%m-%d', e1.HireDate) AS FormattedHireDate
+FROM Employees AS e1
+LEFT JOIN Employees AS e2 ON e1.ReportsTo = e2.EmployeeId
+ORDER BY FormattedHireDate DESC;
+
+-- a list of all customers who bought Reggae music.
+SELECT 
+    c.FirstName || ' ' || c.LastName AS CustomerName
+FROM Customers AS c
+JOIN Invoices AS i ON c.CustomerId = i.CustomerId
+JOIN Invoice_items AS ii ON i.InvoiceId = ii.InvoiceId
+JOIN Tracks AS t ON ii.TrackId = t.TrackId
+JOIN Genres AS g ON t.GenreId = g.GenreId
+WHERE g.Name = 'Reggae';
+
+-- the total amount of sales for each artist
+SELECT 
+    ar.Name AS ArtistName,
+    COUNT(*) AS TotalNumTracks,
+    printf('%.2f', SUM(ii.UnitPrice)) AS TotalDollarTracks
+FROM Artists AS ar
+JOIN Albums AS al ON ar.ArtistId = al.ArtistId
+JOIN Tracks AS t ON al.AlbumId = t.AlbumId
+JOIN Invoice_items AS ii ON t.TrackId = ii.TrackId
+GROUP BY ArtistName;
+
+-- the most purchased music genre for each customer.
+DROP TABLE IF EXISTS first_select;
+CREATE TEMP TABLE first_select AS
+SELECT 
+    c.CustomerId,
+    c.FirstName,
+    c.LastName,
+    t.GenreId,
+    COUNT(*) AS GenreCount
+FROM Customers AS c
+JOIN Invoices AS i ON c.CustomerId = i.CustomerId
+JOIN Invoice_items AS ii ON i.InvoiceId = ii.InvoiceId
+JOIN Tracks AS t ON ii.TrackId = t.TrackId
+GROUP BY c.CustomerId, t.GenreId;
+
+SELECT 
+    fs.CustomerId,
+    fs.FirstName,
+    fs.LastName,
+    g.Name AS FavoriteGenre,
+    MAX(fs.GenreCount) AS GenreCount
+FROM first_select AS fs
+JOIN Genres AS g ON fs.GenreId = g.GenreId
+GROUP BY fs.CustomerId
+ORDER BY fs.CustomerId;
+
+
+
+
+
