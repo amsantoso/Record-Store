@@ -1,2 +1,1 @@
-# Record-Store
-Select and aggregate data for information in a record store 
+This SQL code involves querying the Chinook database using the 'chinook.db' file for exploration. The tasks included calculating the total cost and disk space required to purchase every track, determining the price for each playlist, sorting and formatting playlist prices, extracting employee information with hiring dates, identifying customers who purchased Reggae music, analyzing total sales for each artist, and modifying a complex query by introducing a temporary table for improved clarity and manageability.
